@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyanChat | Mesajlaşma</title>
+    <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>Sohbetler</h2>
+                <button class="icon-btn" id="openSettings"><i class="fas fa-ellipsis-v"></i></button>
+            </div>
+            
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Kişi veya grup ara...">
+            </div>
+            
+            <div class="contact-list">
+                <div class="contact-item active">
+                    <div class="avatar group-avatar"><i class="fas fa-users"></i></div>
+                    <div class="contact-info">
+                        <h4>Matematik Sınıfı</h4>
+                        <p>Son ödev dosyalarını yükledim...</p>
+                    </div>
+                </div>
+                <div class="contact-item">
+                    <div class="avatar"><i class="fas fa-user-graduate"></i></div>
+                    <div class="contact-info">
+                        <h4>Ayşe Öğretmen</h4>
+                        <p>Teşekkürler, kontrol edeceğim.</p>
+                    </div>
+                </div>
+                <div class="contact-item">
+                    <div class="avatar"><i class="fas fa-user"></i></div>
+                    <div class="contact-info">
+                        <h4>Ali (Proje Ekibi)</h4>
+                        <p>Yarınki toplantı saat kaçta?</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="chat-area">
+            <header class="chat-header">
+                <div class="current-chat-info">
+                    <div class="avatar group-avatar"><i class="fas fa-users"></i></div>
+                    <div>
+                        <h3>Matematik Sınıfı</h3>
+                        <span class="status">24 Katılımcı</span>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="icon-btn"><i class="fas fa-video"></i></button>
+                    <button class="icon-btn"><i class="fas fa-phone"></i></button>
+                    <button class="icon-btn"><i class="fas fa-info-circle"></i></button>
+                </div>
+            </header>
+
+            <div class="messages-container">
+                <div class="message received">
+                    <div class="msg-bubble">Arkadaşlar, yarına kadar PDF formatında teslim etmemiz gerekiyor.</div>
+                    <span class="msg-time">10:45</span>
+                </div>
+                <div class="message sent">
+                    <div class="msg-bubble">Ben dosyayı hazırladım, birazdan gruba atıyorum.</div>
+                    <span class="msg-time">10:47</span>
+                </div>
+            </div>
+
+            <footer class="chat-footer">
+                <div class="attachment-menu" id="attachmentMenu">
+                    <button class="attach-item"><i class="fas fa-file-pdf"></i> Belge / Ödev Ekle</button>
+                    <button class="attach-item"><i class="fas fa-image"></i> Fotoğraf Ekle</button>
+                </div>
+
+                <button class="icon-btn attach-btn" id="attachBtn"><i class="fas fa-plus"></i></button>
+                
+                <div class="input-wrapper">
+                    <input type="text" placeholder="Bir mesaj yazın..." id="messageInput" autocomplete="off">
+                    <button class="icon-btn emoji-btn"><i class="far fa-smile"></i></button>
+                </div>
+                
+                <button class="send-btn"><i class="fas fa-paper-plane"></i></button>
+            </footer>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Ayarlar</h3>
+                <button class="icon-btn" id="closeSettings"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-item">
+                    <span>Karanlık Tema</span>
+                    <label class="switch">
+                        <input type="checkbox" id="themeToggle">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <span>Yeni Belge/Ödev Bildirimleri</span>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <span>Grup Sohbeti Sesleri</span>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/index.js"></script>
+</body>
+</html>

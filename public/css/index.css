@@ -1,0 +1,352 @@
+/* --- TEMA DEĞİŞKENLERİ --- */
+:root {
+    --bg-color: #f0f8ff; 
+    --panel-bg: #ffffff; 
+    --primary-cyan: #00acc1; 
+    --primary-light: #e0f7fa; 
+    --text-dark: #2c3e50;
+    --text-muted: #7f8c8d;
+    --border-color: #edf2f7;
+    --msg-received-bg: #ffffff;
+    --border-radius-lg: 24px;
+    --border-radius-md: 16px;
+    --border-radius-sm: 12px;
+}
+
+/* Karanlık Tema (Dark Mode) Renkleri */
+body.dark-mode {
+    --bg-color: #121212;
+    --panel-bg: #1e1e1e;
+    --primary-cyan: #00bcd4;
+    --primary-light: #2a3b4c; 
+    --text-dark: #f0f0f0;
+    --text-muted: #a0aab2;
+    --border-color: #333333;
+    --msg-received-bg: #2c2c2c;
+}
+
+/* --- GENEL AYARLAR --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-dark);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    transition: background-color 0.3s ease;
+}
+
+.app-container {
+    width: 100%;
+    max-width: 1300px;
+    height: 95vh;
+    background: var(--panel-bg);
+    border-radius: var(--border-radius-lg);
+    display: flex;
+    box-shadow: 0 15px 35px rgba(0, 172, 193, 0.1);
+    overflow: hidden;
+    transition: background-color 0.3s ease;
+}
+
+/* --- SOL SİDEBAR --- */
+.sidebar {
+    width: 350px;
+    background: var(--panel-bg);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar-header {
+    padding: 25px 20px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.search-box {
+    margin: 0 20px 15px;
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-muted);
+}
+
+.search-box input {
+    border: none;
+    outline: none;
+    width: 100%;
+    background: transparent;
+    color: var(--text-dark);
+}
+
+.contact-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    transition: background 0.3s;
+    margin-bottom: 5px;
+}
+
+.contact-item:hover {
+    background: var(--bg-color);
+}
+
+.contact-item.active {
+    background: var(--primary-light);
+    border-left: 4px solid var(--primary-cyan);
+}
+
+.avatar {
+    width: 45px;
+    height: 45px;
+    background: var(--primary-light);
+    color: var(--primary-cyan);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 15px;
+    font-size: 1.2rem;
+}
+
+.contact-info h4 { margin-bottom: 3px; font-weight: 600;}
+.contact-info p { color: var(--text-muted); font-size: 0.85rem; }
+
+/* --- SAĞ SOHBET ALANI --- */
+.chat-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background: var(--bg-color);
+}
+
+.chat-header {
+    padding: 20px 30px;
+    background: var(--panel-bg);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.current-chat-info {
+    display: flex;
+    align-items: center;
+}
+
+.status { color: var(--primary-cyan); font-size: 0.85rem; font-weight: 500;}
+
+.icon-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin-left: 15px;
+    transition: color 0.3s;
+}
+
+.icon-btn:hover { color: var(--primary-cyan); }
+
+/* Mesajlar */
+.messages-container {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.message {
+    max-width: 65%;
+    display: flex;
+    flex-direction: column;
+}
+
+.received { align-self: flex-start; }
+.sent { align-self: flex-end; }
+
+.msg-bubble {
+    padding: 15px 20px;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.received .msg-bubble {
+    background: var(--msg-received-bg);
+    color: var(--text-dark);
+    border-radius: var(--border-radius-md) var(--border-radius-md) var(--border-radius-md) 0;
+}
+
+.sent .msg-bubble {
+    background: var(--primary-cyan);
+    color: white;
+    border-radius: var(--border-radius-md) var(--border-radius-md) 0 var(--border-radius-md);
+}
+
+.msg-time {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 5px;
+    align-self: flex-end;
+}
+
+/* Alt Bar (Mesaj Yazma) */
+.chat-footer {
+    padding: 20px 30px;
+    background: var(--panel-bg);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    position: relative;
+    border-top: 1px solid var(--border-color);
+}
+
+.input-wrapper {
+    flex: 1;
+    background: var(--bg-color);
+    border-radius: var(--border-radius-lg);
+    display: flex;
+    align-items: center;
+    padding: 5px 20px;
+}
+
+.input-wrapper input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 12px 0;
+    outline: none;
+    color: var(--text-dark);
+}
+
+.send-btn {
+    background: var(--primary-cyan);
+    color: white;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 10px rgba(0, 172, 193, 0.3);
+    transition: transform 0.2s;
+}
+
+.send-btn:hover { transform: scale(1.05); }
+
+/* --- EKLENTİ MENÜSÜ --- */
+.attachment-menu {
+    position: absolute;
+    bottom: 80px;
+    left: 30px;
+    background: var(--panel-bg);
+    border-radius: var(--border-radius-md);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
+}
+
+.attachment-menu.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.attach-item {
+    background: transparent;
+    border: none;
+    padding: 10px 20px;
+    text-align: left;
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    color: var(--text-dark);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background 0.2s;
+}
+
+.attach-item:hover {
+    background: var(--bg-color);
+    color: var(--primary-cyan);
+}
+
+/* --- AYARLAR MODAL --- */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    display: flex; justify-content: center; align-items: center;
+    opacity: 0; visibility: hidden; transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.modal-overlay.show { opacity: 1; visibility: visible; }
+
+.modal-content {
+    background: var(--panel-bg); 
+    width: 400px; 
+    border-radius: var(--border-radius-md);
+    padding: 25px; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    transform: translateY(20px); 
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
+}
+
+.modal-overlay.show .modal-content { transform: translateY(0); }
+
+.modal-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 25px; 
+}
+
+.setting-item { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 20px; 
+    font-weight: 500;
+}
+
+/* Switch (Toggle) Tasarımı */
+.switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: var(--text-muted); transition: .4s; border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--primary-cyan); }
+input:checked + .slider:before { transform: translateX(24px); }

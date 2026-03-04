@@ -1,0 +1,212 @@
+/* --- DEĞİŞKENLER VE KARANLIK TEMA --- */
+:root {
+    --primary: #00acc1;
+    --primary-glow: rgba(0, 172, 193, 0.4);
+    --dark: #0a192f;
+    --light-bg: #f0faff;
+    --card-bg: rgba(255, 255, 255, 0.8);
+    --card-inner-bg: #ffffff;
+    --text: #2c3e50;
+    --text-muted: #5a7184;
+    --radius: 30px;
+    --nav-bg: rgba(240, 250, 255, 0.85);
+    --input-bg: #f0f7f8;
+}
+
+body.dark-mode {
+    --dark: #f0faff;
+    --light-bg: #0a1128;
+    --card-bg: rgba(30, 41, 59, 0.8);
+    --card-inner-bg: #1e293b;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --nav-bg: rgba(10, 17, 40, 0.85);
+    --input-bg: #0f172a;
+}
+
+* {
+    margin: 0; padding: 0; box-sizing: border-box;
+    font-family: 'Segoe UI', sans-serif;
+    scroll-behavior: smooth;
+}
+
+body {
+    background: var(--light-bg);
+    color: var(--text);
+    overflow-x: hidden;
+    transition: background-color 0.4s, color 0.4s;
+}
+
+/* --- Navigasyon --- */
+.navbar {
+    padding: 20px 10%; display: flex; justify-content: space-between; align-items: center;
+    position: fixed; width: 100%; top: 0; z-index: 1000;
+    background: var(--nav-bg); backdrop-filter: blur(10px);
+    transition: background 0.4s;
+}
+
+.logo { font-size: 1.8rem; font-weight: 700; color: var(--dark); }
+.logo span { color: var(--primary); }
+.nav-links { display: flex; gap: 30px; align-items: center; }
+.nav-links a { text-decoration: none; color: var(--text); font-weight: 500; transition: 0.3s; }
+.nav-links a:hover { color: var(--primary); }
+
+.theme-btn {
+    background: transparent; border: none; font-size: 1.2rem;
+    color: var(--text); cursor: pointer; transition: 0.3s;
+}
+.theme-btn:hover { color: var(--primary); }
+
+.btn-outline {
+    border: 2px solid var(--primary); background: transparent;
+    padding: 10px 25px; border-radius: var(--radius); cursor: pointer;
+    font-weight: 600; color: var(--primary); transition: 0.3s;
+}
+.btn-outline:hover { background: var(--primary); color: white; }
+
+.btn-fill {
+    background: var(--primary); border: none;
+    padding: 12px 28px; border-radius: var(--radius); cursor: pointer;
+    font-weight: 600; color: white; box-shadow: 0 4px 15px var(--primary-glow); transition: 0.3s;
+}
+.btn-fill:hover { transform: translateY(-3px); box-shadow: 0 8px 25px var(--primary-glow); }
+
+/* --- Hero Bölümü --- */
+.hero {
+    height: 100vh; padding: 0 10%; display: flex; align-items: center; justify-content: space-between;
+    background: radial-gradient(circle at 90% 10%, rgba(0, 172, 193, 0.1) 0%, transparent 40%);
+}
+.hero-content h1 { font-size: 3.5rem; color: var(--dark); line-height: 1.2; }
+.hero-content h1 span { color: var(--primary); }
+.hero-content p { font-size: 1.2rem; margin: 25px 0; color: var(--text-muted); line-height: 1.6;}
+
+.btn-primary-lg {
+    background: var(--primary); border: none; padding: 18px 40px;
+    border-radius: var(--radius); color: white; font-size: 1.1rem; font-weight: 700;
+    cursor: pointer; box-shadow: 0 10px 30px var(--primary-glow); margin-right: 20px;
+    transition: 0.3s;
+}
+.btn-primary-lg:hover { transform: translateY(-3px); }
+
+/* --- ORTAK BÖLÜM AYARLARI --- */
+section { padding: 100px 10%; }
+.section-title { text-align: center; margin-bottom: 50px; }
+.section-title h2 { font-size: 2.5rem; color: var(--dark); margin-bottom: 15px; }
+.section-title p { color: var(--text-muted); font-size: 1.1rem; }
+
+/* --- Özellik Kartları (Spotlight) --- */
+.feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+.feature-card {
+    position: relative; background: var(--card-bg); border-radius: var(--radius);
+    padding: 2px; overflow: hidden; transition: transform 0.4s; cursor: default;
+}
+.feature-card:hover { transform: scale(1.05); }
+.feature-card::before {
+    content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(800px circle at var(--mouse-x) var(--mouse-y), var(--primary-glow), transparent 40%);
+    opacity: 0; transition: opacity 0.5s; pointer-events: none;
+}
+.feature-card:hover::before { opacity: 1; }
+.card-inner { background: var(--card-inner-bg); padding: 40px; border-radius: calc(var(--radius) - 2px); height: 100%; position: relative; z-index: 1; }
+.card-inner i { font-size: 3rem; color: var(--primary); margin-bottom: 20px; }
+.card-inner h3 { margin-bottom: 15px; font-size: 1.5rem; color: var(--dark);}
+.card-inner p { color: var(--text-muted); line-height: 1.6;}
+
+/* --- Nasıl Çalışır --- */
+.how-it-works { background: rgba(0, 172, 193, 0.03); }
+.steps-container { display: flex; gap: 30px; justify-content: center; flex-wrap: wrap; }
+.step-box {
+    background: var(--card-inner-bg); padding: 40px; border-radius: var(--radius);
+    text-align: center; flex: 1; min-width: 250px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+.step-number {
+    width: 60px; height: 60px; background: var(--primary); color: white;
+    font-size: 1.5rem; font-weight: bold; display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; margin: 0 auto 20px; box-shadow: 0 5px 15px var(--primary-glow);
+}
+.step-box h3 { color: var(--dark); margin-bottom: 15px; }
+.step-box p { color: var(--text-muted); line-height: 1.6; }
+
+/* --- Hakkımızda --- */
+.about-us { display: flex; justify-content: center; text-align: center; }
+.about-content { max-width: 800px; }
+.about-content h2 { font-size: 2.5rem; color: var(--dark); margin-bottom: 25px; }
+.about-content p { color: var(--text-muted); font-size: 1.1rem; line-height: 1.8; margin-bottom: 20px; }
+
+/* --- İletişim --- */
+.contact-section { background: rgba(0, 172, 193, 0.03); }
+.contact-container {
+    display: flex; gap: 50px; background: var(--card-inner-bg); padding: 50px;
+    border-radius: var(--radius); box-shadow: 0 10px 30px rgba(0,0,0,0.05); flex-wrap: wrap;
+}
+.contact-info { flex: 1; min-width: 300px; }
+.contact-info h2 { font-size: 2.2rem; color: var(--dark); margin-bottom: 15px; }
+.contact-info p { color: var(--text-muted); margin-bottom: 30px; line-height: 1.6; }
+.contact-info ul { list-style: none; }
+.contact-info li { margin-bottom: 15px; color: var(--text); display: flex; align-items: center; gap: 15px; font-size: 1.1rem;}
+.contact-info i { color: var(--primary); font-size: 1.3rem; }
+
+.contact-form { flex: 1; display: flex; flex-direction: column; gap: 20px; min-width: 300px;}
+.contact-form input, .contact-form textarea {
+    width: 100%; padding: 15px 20px; border-radius: 15px; border: none;
+    background: var(--input-bg); color: var(--text); outline: none; font-size: 1rem;
+}
+.contact-form textarea { resize: vertical; }
+
+/* --- Modal (Giriş/Kayıt) --- */
+.auth-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px);
+    display: flex; justify-content: center; align-items: center;
+    z-index: 2000; opacity: 0; visibility: hidden; transition: 0.4s;
+}
+.auth-overlay.show { opacity: 1; visibility: visible; }
+.auth-container { background: var(--card-inner-bg); width: 450px; padding: 40px; border-radius: var(--radius); position: relative; }
+.close-auth { position: absolute; top: 20px; right: 20px; background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text); }
+.auth-box h2 { font-size: 2rem; margin-bottom: 10px; color: var(--dark); }
+.auth-box p { color: var(--text-muted); }
+.input-group { background: var(--input-bg); padding: 15px; border-radius: 15px; display: flex; align-items: center; gap: 15px; margin-top: 20px; color: var(--text);}
+.input-group input { background: transparent; border: none; outline: none; width: 100%; color: var(--text); }
+.btn-auth { width: 100%; padding: 15px; border-radius: 15px; border: none; background: var(--primary); color: white; font-weight: 700; font-size: 1.1rem; margin-top: 30px; cursor: pointer; transition: 0.3s; }
+.auth-footer { margin-top: 20px; text-align: center; }
+.auth-footer a { color: var(--primary); text-decoration: none; font-weight: 600; }
+.hidden { display: none; }
+
+/* --- EXTRA FORM SEÇENEKLERİ VE ÖZEL CHECKBOX --- */
+.form-options {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 15px; font-size: 0.9rem; color: var(--text-muted);
+}
+.form-options.terms { justify-content: flex-start; margin-top: 20px; text-align: left; line-height: 1.4;}
+.form-options a { color: var(--primary); text-decoration: none; font-weight: 600; }
+
+.custom-checkbox {
+    display: flex; align-items: center; gap: 8px; cursor: pointer; position: relative; user-select: none;
+}
+.custom-checkbox input { position: absolute; opacity: 0; cursor: pointer; height: 0; width: 0; }
+.checkmark {
+    height: 18px; width: 18px; background-color: var(--input-bg);
+    border: 2px solid var(--text-muted); border-radius: 4px; transition: 0.3s;
+    display: flex; justify-content: center; align-items: center; flex-shrink: 0;
+}
+.custom-checkbox:hover input ~ .checkmark { border-color: var(--primary); }
+.custom-checkbox input:checked ~ .checkmark { background-color: var(--primary); border-color: var(--primary); }
+
+/* Tik (Check) İkonu */
+.checkmark:after {
+    content: "\f00c"; font-family: "Font Awesome 6 Free"; font-weight: 900;
+    color: white; font-size: 10px; display: none;
+}
+.custom-checkbox input:checked ~ .checkmark:after { display: block; }
+
+/* --- ŞİFRE GÜCÜ GÖSTERGESİ --- */
+.password-strength { margin-top: 10px; margin-bottom: 5px; text-align: left; }
+.strength-bar {
+    height: 6px; width: 100%; background-color: var(--input-bg);
+    border-radius: 3px; overflow: hidden; margin-bottom: 5px;
+}
+.strength-bar .fill {
+    height: 100%; width: 0%; border-radius: 3px;
+    transition: width 0.4s ease, background-color 0.4s ease;
+}
+#strengthText { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; transition: color 0.3s;}
