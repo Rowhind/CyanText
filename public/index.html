@@ -3,125 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CyanChat | Mesajlaşma</title>
+    <title>CyanChat | Sohbet</title>
     <link rel="stylesheet" href="css/index.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .empty-state { display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; color: var(--text-muted); text-align: center; padding: 20px;}
+        .empty-state i { font-size: 4rem; color: var(--border-color); margin-bottom: 15px;}
+        #myCodeDisplay { font-size: 0.8rem; background: var(--primary-light); color: var(--primary-cyan); padding: 5px 10px; border-radius: 10px; font-weight: bold; margin-left: 10px;}
+        .request-box { background: var(--bg-color); padding: 10px; border-radius: 10px; margin-bottom: 10px; font-size: 0.9rem;}
+        .request-btns { display: flex; gap: 10px; margin-top: 5px; }
+        .req-btn { flex: 1; padding: 5px; border: none; border-radius: 5px; cursor: pointer; color: white;}
+        .req-accept { background: #2ed573; }
+        .req-reject { background: #ff4757; }
+        
+        /* Profil ve Görüldü CSS */
+        .avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+        .msg-status { font-size: 0.7rem; margin-left: 5px; color: var(--text-muted); }
+        .msg-status.read { color: #3498db; } /* Görüldü Mavi Tik */
+        .online-dot { width: 10px; height: 10px; background: #2ed573; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .offline-text { font-size: 0.8rem; color: var(--text-muted); }
+        .profile-pic-wrapper { width: 100px; height: 100px; border-radius: 50%; background: var(--border-color); margin: 0 auto 15px; position: relative; overflow: hidden; display: flex; justify-content: center; align-items: center; font-size: 2rem;}
+        .profile-pic-wrapper img { width: 100%; height: 100%; object-fit: cover; position: absolute; top:0; left:0; display: none;}
+        .profile-input-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px; }
+        .profile-input-group input, .profile-input-group textarea { padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text); }
+        .chat-header-clickable { cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 5px; border-radius: 8px; transition: 0.3s; }
+        .chat-header-clickable:hover { background: var(--bg-color); }
+    </style>
 </head>
 <body>
     <div class="app-container">
         <aside class="sidebar">
-            <div class="sidebar-header">
-                <h2>Sohbetler</h2>
-                <button class="icon-btn" id="openSettings"><i class="fas fa-ellipsis-v"></i></button>
+            <div class="sidebar-header" style="flex-direction: column; align-items: flex-start; gap: 10px;">
+                <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                    <h2>Sohbetler</h2>
+                    <div>
+                        <button class="icon-btn" id="openProfileSettings" title="Profil Ayarları"><i class="fas fa-user-edit"></i></button>
+                        <button class="icon-btn" id="openSettings" title="Uygulama Ayarları"><i class="fas fa-cog"></i></button>
+                        <button class="icon-btn" id="logoutBtn" title="Çıkış Yap" style="color: #ff4757;"><i class="fas fa-sign-out-alt"></i></button>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center;">
+                    <div class="avatar" id="mySidebarAvatar" style="width: 30px; height: 30px; margin-right: 10px; font-size: 0.9rem;"><i class="fas fa-user"></i></div>
+                    <span id="myNameDisplay" style="font-weight:bold;">Kullanıcı</span> <span id="myCodeDisplay">#KOD</span>
+                </div>
             </div>
             
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" placeholder="Kişi veya grup ara...">
+            <div class="search-box" style="margin-bottom: 5px;">
+                <i class="fas fa-user-plus"></i>
+                <input type="text" id="addFriendInput" placeholder="Arkadaş Kodu (Örn: A7X9T)">
+                <button id="addFriendBtn" style="border:none; background:var(--primary-cyan); color:white; padding:5px 10px; border-radius:8px; cursor:pointer;">Ekle</button>
             </div>
-            
-            <div class="contact-list">
-                <div class="contact-item active">
-                    <div class="avatar group-avatar"><i class="fas fa-users"></i></div>
-                    <div class="contact-info">
-                        <h4>Matematik Sınıfı</h4>
-                        <p>Son ödev dosyalarını yükledim...</p>
-                    </div>
-                </div>
-                <div class="contact-item">
-                    <div class="avatar"><i class="fas fa-user-graduate"></i></div>
-                    <div class="contact-info">
-                        <h4>Ayşe Öğretmen</h4>
-                        <p>Teşekkürler, kontrol edeceğim.</p>
-                    </div>
-                </div>
-                <div class="contact-item">
-                    <div class="avatar"><i class="fas fa-user"></i></div>
-                    <div class="contact-info">
-                        <h4>Ali (Proje Ekibi)</h4>
-                        <p>Yarınki toplantı saat kaçta?</p>
-                    </div>
-                </div>
-            </div>
+
+            <div id="requestsArea" style="padding: 0 20px;"></div>
+
+            <div class="contact-list" id="contactList"></div>
         </aside>
 
         <main class="chat-area">
-            <header class="chat-header">
-                <div class="current-chat-info">
-                    <div class="avatar group-avatar"><i class="fas fa-users"></i></div>
+            <div id="noChatSelected" class="empty-state" style="background: var(--bg-color); z-index: 10;">
+                <i class="fas fa-comments"></i>
+                <h2>CyanChat'e Hoş Geldiniz!</h2>
+                <p>Mesajlaşmaya başlamak için sol taraftan bir sohbet seçin.</p>
+            </div>
+
+            <header class="chat-header" id="chatHeader" style="display: none;">
+                <div class="current-chat-info chat-header-clickable" id="chatHeaderClickable">
+                    <div class="avatar" id="activeChatAvatar"><i class="fas fa-user"></i></div>
                     <div>
-                        <h3>Matematik Sınıfı</h3>
-                        <span class="status">24 Katılımcı</span>
+                        <h3 id="chatHeaderTitle">Kişi Adı</h3>
+                        <span class="status" id="chatHeaderStatus"><span class="online-dot"></span>Çevrimiçi</span>
                     </div>
-                </div>
-                <div class="header-actions">
-                    <button class="icon-btn"><i class="fas fa-video"></i></button>
-                    <button class="icon-btn"><i class="fas fa-phone"></i></button>
-                    <button class="icon-btn"><i class="fas fa-info-circle"></i></button>
                 </div>
             </header>
 
-            <div class="messages-container">
-                <div class="message received">
-                    <div class="msg-bubble">Arkadaşlar, yarına kadar PDF formatında teslim etmemiz gerekiyor.</div>
-                    <span class="msg-time">10:45</span>
-                </div>
-                <div class="message sent">
-                    <div class="msg-bubble">Ben dosyayı hazırladım, birazdan gruba atıyorum.</div>
-                    <span class="msg-time">10:47</span>
-                </div>
-            </div>
+            <div class="messages-container" id="messageContainer" style="display: none;"></div>
 
-            <footer class="chat-footer">
-                <div class="attachment-menu" id="attachmentMenu">
-                    <button class="attach-item"><i class="fas fa-file-pdf"></i> Belge / Ödev Ekle</button>
-                    <button class="attach-item"><i class="fas fa-image"></i> Fotoğraf Ekle</button>
-                </div>
-
-                <button class="icon-btn attach-btn" id="attachBtn"><i class="fas fa-plus"></i></button>
-                
+            <footer class="chat-footer" id="chatFooter" style="display: none;">
                 <div class="input-wrapper">
                     <input type="text" placeholder="Bir mesaj yazın..." id="messageInput" autocomplete="off">
-                    <button class="icon-btn emoji-btn"><i class="far fa-smile"></i></button>
                 </div>
-                
-                <button class="send-btn"><i class="fas fa-paper-plane"></i></button>
+                <button class="send-btn" id="sendBtn"><i class="fas fa-paper-plane"></i></button>
             </footer>
         </main>
     </div>
 
-    <div class="modal-overlay" id="settingsModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Ayarlar</h3>
-                <button class="icon-btn" id="closeSettings"><i class="fas fa-times"></i></button>
-            </div>
+    <div class="modal-overlay" id="profileModal">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <div class="modal-header"><h3>Profil Ayarları</h3><button class="icon-btn" id="closeProfileModal"><i class="fas fa-times"></i></button></div>
             <div class="modal-body">
-                <div class="setting-item">
-                    <span>Karanlık Tema</span>
-                    <label class="switch">
-                        <input type="checkbox" id="themeToggle">
-                        <span class="slider round"></span>
-                    </label>
+                <div class="profile-pic-wrapper" id="profilePicPreview">
+                    <i class="fas fa-user" id="profilePicIcon"></i>
+                    <img id="profilePicImg" src="" alt="Profil">
                 </div>
-                <div class="setting-item">
-                    <span>Yeni Belge/Ödev Bildirimleri</span>
-                    <label class="switch">
-                        <input type="checkbox" checked>
-                        <span class="slider round"></span>
-                    </label>
+                <div style="margin-bottom: 20px;">
+                    <input type="file" id="avatarUpload" accept="image/png, image/jpeg, image/jpg" style="display: none;">
+                    <button class="btn-outline" onclick="document.getElementById('avatarUpload').click()" style="padding: 5px 10px; font-size:0.9rem;">Fotoğraf Seç</button>
+                    <button class="btn-outline" id="removeAvatarBtn" style="padding: 5px 10px; font-size:0.9rem; color: #ff4757; border-color: #ff4757;">Kaldır</button>
                 </div>
-                <div class="setting-item">
-                    <span>Grup Sohbeti Sesleri</span>
-                    <label class="switch">
-                        <input type="checkbox" checked>
-                        <span class="slider round"></span>
-                    </label>
+                <div class="profile-input-group">
+                    <label style="text-align: left; font-size: 0.9rem; font-weight: bold;">Hakkımda</label>
+                    <textarea id="aboutMeInput" rows="3" placeholder="Kendinizden bahsedin..."></textarea>
+                </div>
+                <div class="setting-item" style="text-align: left;">
+                    <span>Görüldü Bilgisi (Mavi Tik)</span>
+                    <label class="switch"><input type="checkbox" id="readReceiptsToggle" checked><span class="slider round"></span></label>
+                </div>
+                <div class="setting-item" style="text-align: left;">
+                    <span>Son Görülme Zamanı Göster</span>
+                    <label class="switch"><input type="checkbox" id="lastSeenToggle" checked><span class="slider round"></span></label>
+                </div>
+                <button class="send-btn" id="saveProfileBtn" style="width: 100%; border-radius: 10px; margin-top: 15px; padding: 12px; font-weight: bold;">Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="viewProfileModal">
+        <div class="modal-content" style="max-width: 350px; text-align: center;">
+            <div class="modal-header"><h3>Kullanıcı Bilgileri</h3><button class="icon-btn" id="closeViewProfile"><i class="fas fa-times"></i></button></div>
+            <div class="modal-body">
+                <div class="profile-pic-wrapper" id="viewProfilePic">
+                    <i class="fas fa-user" id="viewProfileIcon"></i>
+                    <img id="viewProfileImg" src="" alt="Profil" style="display:none;">
+                </div>
+                <h2 id="viewProfileName" style="margin-bottom: 5px;">İsim</h2>
+                <p id="viewProfileCode" style="color: var(--primary-cyan); font-weight: bold; margin-bottom: 15px;">#KOD</p>
+                <div style="background: var(--bg-color); padding: 15px; border-radius: 10px; text-align: left;">
+                    <h4 style="margin-bottom: 5px; font-size: 0.9rem; color: var(--text-muted);">Hakkında</h4>
+                    <p id="viewProfileAbout" style="font-size: 0.95rem;">-</p>
                 </div>
             </div>
         </div>
     </div>
 
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Uygulama Ayarları</h3><button class="icon-btn" id="closeSettings"><i class="fas fa-times"></i></button></div>
+            <div class="modal-body">
+                <div class="setting-item"><span>Karanlık Tema</span><label class="switch"><input type="checkbox" id="themeToggle"><span class="slider round"></span></label></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
     <script src="js/index.js"></script>
 </body>
 </html>
