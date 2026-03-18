@@ -15,9 +15,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let activeChatFriendCode = null; 
     let activeRoomID = null;
-    let selectedAvatarBase64 = null; // Profil resmi tutucu
+    let selectedAvatarBase64 = null; 
+    let activeFriendVoiceId = null; 
 
-    // --- TARİH VE SAAT FORMATLAYICI (Bugün, Dün) ---
+    // ==========================================
+    // YENİ: OTOMATİK OKUMA HAVUZU (BUFFER) MANTIĞI
+    // ==========================================
+    let autoReadTimer = null;
+    let autoReadBuffer = [];
+    const AUTO_READ_DELAY = 10000; // 10 Saniye sessizlik olunca havuzu oku
+
     function formatLastSeen(timestamp) {
         if (!timestamp) return 'Uzun zaman önce';
         const date = new Date(timestamp);
@@ -34,20 +41,17 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${date.toLocaleDateString('tr-TR')} ${time}`;
     }
 
-    // --- PROFIL AYARLARI YÖNETİMİ ---
     const profileModal = document.getElementById('profileModal');
     const avatarUpload = document.getElementById('avatarUpload');
     const profilePicImg = document.getElementById('profilePicImg');
     const profilePicIcon = document.getElementById('profilePicIcon');
 
-    // Profil açıldığında sunucudan güncel bilgiyi iste
     document.getElementById('openProfileSettings').addEventListener('click', () => {
         socket.emit('getUserProfile', currentUser.code);
         profileModal.classList.add('show');
     });
     document.getElementById('closeProfileModal').addEventListener('click', () => profileModal.classList.remove('show'));
 
-    // Resim Yükleme (Base64 Dönüşümü)
     avatarUpload.addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -69,6 +73,65 @@ document.addEventListener('DOMContentLoaded', () => {
         profilePicIcon.style.display = 'block';
     });
 
+    let mediaRecorder;
+    let audioChunks = [];
+    let isRecording = false;
+    const recordBtn = document.getElementById('recordBtn');
+    const voiceStatusText = document.getElementById('voiceStatusText');
+
+    if (recordBtn) {
+        recordBtn.addEventListener('click', async (e) => {
+            e.preventDefault(); 
+            if (!isRecording) {
+                try {
+                    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                        alert("HATA: Tarayıcı mikrofonu engelliyor!");
+                        return;
+                    }
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+
+                    mediaRecorder.onstop = async () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                        audioChunks = []; 
+                        voiceStatusText.innerHTML = '<span style="color:var(--primary-cyan)"><i class="fas fa-spinner fa-spin"></i> Sesiniz analiz ediliyor...</span>';
+                        recordBtn.style.display = 'none';
+
+                        const formData = new FormData();
+                        formData.append('audio', audioBlob, 'voice.webm');
+                        formData.append('userCode', currentUser.code);
+
+                        try {
+                            const response = await fetch('/api/clone-voice', { method: 'POST', body: formData });
+                            const data = await response.json();
+                            if (data.success) {
+                                voiceStatusText.innerHTML = '<span style="color:#2ed573"><i class="fas fa-check-circle"></i> Ses başarıyla klonlandı.</span>';
+                            } else {
+                                voiceStatusText.innerHTML = `<span style="color:#ff4757"><i class="fas fa-times-circle"></i> Hata: ${data.message}</span>`;
+                                recordBtn.style.display = 'block';
+                            }
+                        } catch (error) {
+                            voiceStatusText.innerText = "Bağlantı hatası.";
+                            recordBtn.style.display = 'block';
+                        }
+                    };
+
+                    mediaRecorder.start();
+                    isRecording = true;
+                    recordBtn.classList.add('recording');
+                    recordBtn.innerHTML = '<i class="fas fa-stop"></i> Kaydı Bitir ve Gönder';
+                } catch (err) {
+                    alert("Mikrofon izni reddedildi!");
+                }
+            } else {
+                mediaRecorder.stop();
+                isRecording = false;
+                recordBtn.classList.remove('recording');
+            }
+        });
+    }
+
     document.getElementById('saveProfileBtn').addEventListener('click', () => {
         const about = document.getElementById('aboutMeInput').value;
         const readReceipts = document.getElementById('readReceiptsToggle').checked;
@@ -80,41 +143,29 @@ document.addEventListener('DOMContentLoaded', () => {
             settings: { readReceipts, lastSeen }
         });
         
-        // Kendi küçük yan menü profil resmimi güncelle
         const mySidebarAvatar = document.getElementById('mySidebarAvatar');
-        if(selectedAvatarBase64) mySidebarAvatar.innerHTML = `<img src="${selectedAvatarBase64}">`;
+        if(selectedAvatarBase64) mySidebarAvatar.innerHTML = `<img src="${selectedAvatarBase64}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">`;
         else mySidebarAvatar.innerHTML = `<i class="fas fa-user"></i>`;
         
         alert('Profiliniz güncellendi!');
         profileModal.classList.remove('show');
     });
 
-    // Sunucudan profil bilgilerim gelince formu doldur
     socket.on('receiveUserProfile', (data) => {
-        if(data.code === currentUser.code) { // Kendi profilimse formlara doldur
+        if(data.code === currentUser.code) { 
             document.getElementById('aboutMeInput').value = data.about || '';
-            document.getElementById('readReceiptsToggle').checked = data.lastSeenDate !== null; // Basit simülasyon
+            document.getElementById('readReceiptsToggle').checked = data.lastSeenDate !== null; 
             if(data.avatar) {
                 selectedAvatarBase64 = data.avatar;
                 profilePicImg.src = data.avatar;
                 profilePicImg.style.display = 'block';
                 profilePicIcon.style.display = 'none';
             }
-        }
-    });
-
-    // --- BAŞKASININ PROFiLİNİ GÖRÜNTÜLEME ---
-    const viewProfileModal = document.getElementById('viewProfileModal');
-    document.getElementById('chatHeaderClickable').addEventListener('click', () => {
-        if(activeChatFriendCode) {
-            socket.emit('getUserProfile', activeChatFriendCode);
-            viewProfileModal.classList.add('show');
-        }
-    });
-    document.getElementById('closeViewProfile').addEventListener('click', () => viewProfileModal.classList.remove('show'));
-
-    socket.on('receiveUserProfile', (data) => {
-        if(data.code !== currentUser.code) { // Başkasının profilini görüntülüyorsam
+            if(data.voiceId && voiceStatusText) {
+                voiceStatusText.innerHTML = '<span style="color:#2ed573"><i class="fas fa-check-circle"></i> Yapay Zeka Sesiniz aktif.</span>';
+                if(recordBtn) recordBtn.style.display = 'none';
+            }
+        } else {
             document.getElementById('viewProfileName').innerText = data.name;
             document.getElementById('viewProfileCode').innerText = '#' + data.code;
             document.getElementById('viewProfileAbout').innerText = data.about || 'Merhaba! Ben CyanChat kullanıyorum.';
@@ -126,10 +177,22 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 vImg.src = ''; vImg.style.display = 'none'; vIcon.style.display = 'block';
             }
+            
+            if(activeChatFriendCode === data.code) {
+                activeFriendVoiceId = data.voiceId;
+            }
         }
     });
 
-    // --- ARKADAŞLIK VE ODA YÖNETİMİ ---
+    const viewProfileModal = document.getElementById('viewProfileModal');
+    document.getElementById('chatHeaderClickable').addEventListener('click', () => {
+        if(activeChatFriendCode) {
+            socket.emit('getUserProfile', activeChatFriendCode);
+            viewProfileModal.classList.add('show');
+        }
+    });
+    document.getElementById('closeViewProfile').addEventListener('click', () => viewProfileModal.classList.remove('show'));
+
     document.getElementById('addFriendBtn').addEventListener('click', () => {
         const toCode = document.getElementById('addFriendInput').value.trim().toUpperCase();
         if(toCode) socket.emit('sendFriendRequest', { fromCode: currentUser.code, fromName: currentUser.name, toCode });
@@ -150,7 +213,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('requestsArea').appendChild(div);
     }
 
-    // LİSTE VE DURUM GÜNCELLEMELERİ (ÇEVRİMİÇİ/SON GÖRÜLME)
     socket.on('updateFriendsList', (friends) => {
         const contactList = document.getElementById('contactList');
         if (friends.length === 0) return contactList.innerHTML = `<div class="empty-state" style="margin-top: 50px;"><i class="fas fa-user-friends"></i><p>Arkadaş ekleyin!</p></div>`;
@@ -171,21 +233,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Arkadaşım girip çıktığında üstteki durumu güncelle
     socket.on('friendStatusChanged', ({ code, online, lastSeen }) => {
-        if(activeChatFriendCode === code) {
-            updateChatHeaderStatus(online, lastSeen);
-        }
+        if(activeChatFriendCode === code) updateChatHeaderStatus(online, lastSeen);
     });
 
     function updateChatHeaderStatus(online, lastSeen) {
         const statusEl = document.getElementById('chatHeaderStatus');
-        if(online) {
-            statusEl.innerHTML = `<span class="online-dot"></span> Çevrimiçi`;
-        } else {
-            const text = lastSeen ? `Son görülme: ${formatLastSeen(lastSeen)}` : 'Çevrimdışı';
-            statusEl.innerHTML = `<span class="offline-text">${text}</span>`;
-        }
+        if(online) statusEl.innerHTML = `<span class="online-dot"></span> Çevrimiçi`;
+        else statusEl.innerHTML = `<span class="offline-text">${lastSeen ? `Son görülme: ${formatLastSeen(lastSeen)}` : 'Çevrimdışı'}</span>`;
     }
 
     function openChat(friend) {
@@ -202,19 +257,31 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('chatHeaderTitle').innerText = friend.name;
         
         const avatarEl = document.getElementById('activeChatAvatar');
-        avatarEl.innerHTML = friend.avatar ? `<img src="${friend.avatar}">` : `<i class="fas fa-user"></i>`;
+        avatarEl.innerHTML = friend.avatar ? `<img src="${friend.avatar}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">` : `<i class="fas fa-user"></i>`;
         
-        // Karşı tarafın o anki durumunu öğrenmek için profilini çekelim
         socket.emit('getUserProfile', friend.code);
+        
+        // Odaya girince havuzu sıfırla
+        if(autoReadTimer) clearTimeout(autoReadTimer);
+        autoReadBuffer = [];
+        const autoReadIcon = document.getElementById('autoReadIcon');
+        if(autoReadIcon) autoReadIcon.className = 'fas fa-volume-up';
     }
 
-    // --- MESAJLAŞMA VE GÖRÜLDÜ SİSTEMİ ---
     const messageInput = document.getElementById('messageInput');
     const sendBtn = document.getElementById('sendBtn');
 
     sendBtn.addEventListener('click', () => {
         const text = messageInput.value.trim();
         if (!text || !activeRoomID) return;
+
+        // YENİ: Ben mesaj atarsam, karşı tarafın yarım kalan oto-okumasını iptal et.
+        if (autoReadTimer) {
+            clearTimeout(autoReadTimer);
+            autoReadBuffer = [];
+            const autoReadIcon = document.getElementById('autoReadIcon');
+            if(autoReadIcon) autoReadIcon.className = 'fas fa-volume-up';
+        }
 
         socket.emit('privateMessage', {
             room: activeRoomID,
@@ -233,7 +300,6 @@ document.addEventListener('DOMContentLoaded', () => {
         messages.forEach(appendMessage);
         mc.scrollTop = mc.scrollHeight;
         
-        // Odaya girdiğimde karşı tarafın mesajlarını gördüğümü bildir
         if(messages.length > 0) {
             const lastMsg = messages[messages.length - 1];
             if(lastMsg.senderCode !== currentUser.code) {
@@ -247,19 +313,55 @@ document.addEventListener('DOMContentLoaded', () => {
         const mc = document.getElementById('messageContainer');
         mc.scrollTop = mc.scrollHeight;
 
-        // Mesaj geldiğinde ben bu odadaysam hemen "Görüldü" at
         if(activeRoomID === data.room && data.senderCode !== currentUser.code) {
             socket.emit('markAsRead', { room: activeRoomID, senderCode: data.senderCode });
+
+            // ==========================================
+            // YENİ: MESAJ GELDİĞİNDE OTO-OKUMA MANTIĞI
+            // ==========================================
+            const autoReadToggle = document.getElementById('autoReadToggle');
+            if (autoReadToggle && autoReadToggle.checked) {
+                const autoReadIcon = document.getElementById('autoReadIcon');
+                
+                // 1. Yeni mesajı havuza at
+                autoReadBuffer.push(data.text);
+                
+                // 2. İkonu yanıp sönen "dinleniyor/bekleniyor" ikonuna çevir
+                if(autoReadIcon) {
+                    autoReadIcon.className = 'fas fa-microphone';
+                    autoReadIcon.style.color = '#2ed573';
+                }
+
+                // 3. Önceki sayacı iptal et
+                if (autoReadTimer) clearTimeout(autoReadTimer);
+
+                // 4. Yeni 5 saniyelik sayaç başlat
+                autoReadTimer = setTimeout(() => {
+                    if (autoReadBuffer.length > 0) {
+                        // Havuzdaki tüm kelimeleri boşluk ve noktayla birleştir
+                        const combinedText = autoReadBuffer.join('. '); 
+                        autoReadBuffer = []; // Okunduğu için havuzu boşalt
+                        
+                        // İkonu normale çevir
+                        if(autoReadIcon) {
+                            autoReadIcon.className = 'fas fa-volume-up';
+                            autoReadIcon.style.color = 'var(--text-muted)';
+                        }
+                        
+                        // Birleşik metni API'ye yolla
+                        speakText(combinedText, null);
+                    }
+                }, AUTO_READ_DELAY);
+            }
         }
     });
 
-    // Mesajım karşı tarafta okunduğunda mavi tike çevir
     socket.on('messageRead', (room) => {
         if(activeRoomID === room) {
             document.querySelectorAll('.msg-status.sent').forEach(icon => {
                 icon.classList.remove('sent');
                 icon.classList.add('read');
-                icon.innerHTML = '<i class="fas fa-check-double"></i>'; // Mavi Çift Tik
+                icon.innerHTML = '<i class="fas fa-check-double"></i>'; 
             });
         }
     });
@@ -270,9 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
         div.className = `message ${isMine ? 'sent' : 'received'}`;
         
         const safeText = data.text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
-        const playBtn = !isMine ? `<button class="icon-btn play-btn" onclick="speakText('${safeText}')" style="font-size: 0.95rem; margin-left: 10px; color: var(--primary-cyan); cursor: pointer; border: none; background: transparent;"><i class="fas fa-volume-up"></i></button>` : '';
-        
-        // Durum İkonu (Tek tik gönderildi, Çift tik okundu simülasyonu)
+        const playBtn = !isMine ? `<button class="icon-btn play-btn" onclick="speakText('${safeText}', this)" style="font-size: 0.95rem; margin-left: 10px; color: var(--primary-cyan); cursor: pointer; border: none; background: transparent;"><i class="fas fa-volume-up"></i></button>` : '';
         const statusHtml = isMine ? `<span class="msg-status ${data.status === 'read' ? 'read' : 'sent'}"><i class="fas fa-check"></i></span>` : '';
 
         div.innerHTML = `
@@ -284,7 +384,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('messageContainer').appendChild(div);
     }
 
-    // AYARLAR VE TEMA
     const settingsModal = document.getElementById('settingsModal');
     document.getElementById('openSettings').addEventListener('click', () => settingsModal.classList.add('show'));
     document.getElementById('closeSettings').addEventListener('click', () => settingsModal.classList.remove('show'));
@@ -295,13 +394,68 @@ document.addEventListener('DOMContentLoaded', () => {
         if(themeToggle.checked) { document.body.classList.add('dark-mode'); localStorage.setItem('theme', 'dark'); } 
         else { document.body.classList.remove('dark-mode'); localStorage.setItem('theme', 'light'); }
     });
-});
 
-window.speakText = function(text) {
-    if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = 'tr-TR';
-        window.speechSynthesis.speak(utterance);
-    }
-};
+    // ==========================================
+    // YENİ: DÜZENLENMİŞ SES OKUMA FONKSİYONU
+    // ==========================================
+    window.speakText = async function(text, btnElement = null) {
+        let originalIcon = '';
+        if (btnElement) {
+            originalIcon = btnElement.innerHTML;
+            btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; 
+        } else {
+            // Otomatik okumadaysa üstteki genel ikonu döndürelim
+            const autoReadIcon = document.getElementById('autoReadIcon');
+            if(autoReadIcon) autoReadIcon.className = 'fas fa-spinner fa-spin';
+        }
+        
+        if (!activeFriendVoiceId) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'tr-TR';
+                
+                utterance.onend = () => {
+                    if (btnElement) btnElement.innerHTML = originalIcon;
+                    else {
+                        const icon = document.getElementById('autoReadIcon');
+                        if(icon) icon.className = 'fas fa-volume-up';
+                    }
+                };
+                window.speechSynthesis.speak(utterance);
+            } 
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/speak', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: text, voiceId: activeFriendVoiceId })
+            });
+
+            if (!response.ok) throw new Error('Ses alınamadı.');
+
+            const blob = await response.blob();
+            const audioUrl = URL.createObjectURL(blob);
+            const audio = new Audio(audioUrl);
+            
+            audio.onended = () => {
+                if (btnElement) btnElement.innerHTML = originalIcon; 
+                else {
+                    const icon = document.getElementById('autoReadIcon');
+                    if(icon) { icon.className = 'fas fa-volume-up'; icon.style.color = 'var(--text-muted)'; }
+                }
+            };
+            
+            audio.play();
+        } catch (error) {
+            console.error("Yapay Zeka Ses Hatası:", error);
+            if (btnElement) btnElement.innerHTML = originalIcon;
+            else {
+                const icon = document.getElementById('autoReadIcon');
+                if(icon) { icon.className = 'fas fa-volume-up'; icon.style.color = 'var(--text-muted)'; }
+            }
+        }
+    };
+});

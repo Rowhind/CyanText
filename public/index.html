@@ -28,6 +28,13 @@
         .profile-input-group input, .profile-input-group textarea { padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text); }
         .chat-header-clickable { cursor: pointer; display: flex; align-items: center; gap: 10px; padding: 5px; border-radius: 8px; transition: 0.3s; }
         .chat-header-clickable:hover { background: var(--bg-color); }
+        
+        /* YENİ: Ses Klonlama CSS */
+        .voice-clone-box { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; margin-bottom: 15px; text-align: left; }
+        .voice-clone-box p { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; }
+        .record-btn { background: #ff4757; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; transition: 0.3s; }
+        .record-btn.recording { background: #2ed573; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
@@ -66,13 +73,21 @@
                 <p>Mesajlaşmaya başlamak için sol taraftan bir sohbet seçin.</p>
             </div>
 
-            <header class="chat-header" id="chatHeader" style="display: none;">
+            <header class="chat-header" id="chatHeader" style="display: none; justify-content: space-between; align-items: center;">
                 <div class="current-chat-info chat-header-clickable" id="chatHeaderClickable">
                     <div class="avatar" id="activeChatAvatar"><i class="fas fa-user"></i></div>
                     <div>
                         <h3 id="chatHeaderTitle">Kişi Adı</h3>
                         <span class="status" id="chatHeaderStatus"><span class="online-dot"></span>Çevrimiçi</span>
                     </div>
+                </div>
+                
+                <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-muted); padding-right: 15px;">
+                    <i class="fas fa-volume-up" id="autoReadIcon" style="transition: 0.3s;"></i> OTO-OKUMA
+                    <label class="switch" style="transform: scale(0.8); margin: 0;">
+                        <input type="checkbox" id="autoReadToggle">
+                        <span class="slider round"></span>
+                    </label>
                 </div>
             </header>
 
@@ -88,7 +103,7 @@
     </div>
 
     <div class="modal-overlay" id="profileModal">
-        <div class="modal-content" style="max-width: 400px; text-align: center;">
+        <div class="modal-content" style="max-width: 400px; text-align: center; max-height: 90vh; overflow-y: auto;">
             <div class="modal-header"><h3>Profil Ayarları</h3><button class="icon-btn" id="closeProfileModal"><i class="fas fa-times"></i></button></div>
             <div class="modal-body">
                 <div class="profile-pic-wrapper" id="profilePicPreview">
@@ -100,10 +115,19 @@
                     <button class="btn-outline" onclick="document.getElementById('avatarUpload').click()" style="padding: 5px 10px; font-size:0.9rem;">Fotoğraf Seç</button>
                     <button class="btn-outline" id="removeAvatarBtn" style="padding: 5px 10px; font-size:0.9rem; color: #ff4757; border-color: #ff4757;">Kaldır</button>
                 </div>
+                
                 <div class="profile-input-group">
                     <label style="text-align: left; font-size: 0.9rem; font-weight: bold;">Hakkımda</label>
                     <textarea id="aboutMeInput" rows="3" placeholder="Kendinizden bahsedin..."></textarea>
                 </div>
+
+                <div class="voice-clone-box">
+                    <h4 style="margin-bottom: 5px; color: var(--primary-cyan);"><i class="fas fa-microphone-alt"></i> Yapay Zeka Sesimi Oluştur</h4>
+                    <p id="voiceStatusText">Mesajlarınızın sizin sesinizle okunması için aşağıdaki butona basıp metni okuyun. En az 10 saniye konuşmalısınız.</p>
+                    <p style="font-style: italic; background: rgba(0,0,0,0.1); padding: 5px; border-radius: 5px;">"Merhaba, ben CyanChat kullanıcısıyım. Bu benim kendi dijital sesim ve artık tüm mesajlarım bu şekilde karşı tarafa iletilecek."</p>
+                    <button id="recordBtn" class="record-btn"><i class="fas fa-circle"></i> Ses Kaydını Başlat</button>
+                </div>
+
                 <div class="setting-item" style="text-align: left;">
                     <span>Görüldü Bilgisi (Mavi Tik)</span>
                     <label class="switch"><input type="checkbox" id="readReceiptsToggle" checked><span class="slider round"></span></label>
@@ -112,7 +136,7 @@
                     <span>Son Görülme Zamanı Göster</span>
                     <label class="switch"><input type="checkbox" id="lastSeenToggle" checked><span class="slider round"></span></label>
                 </div>
-                <button class="send-btn" id="saveProfileBtn" style="width: 100%; border-radius: 10px; margin-top: 15px; padding: 12px; font-weight: bold;">Kaydet</button>
+                <button class="send-btn" id="saveProfileBtn" style="width: 100%; border-radius: 10px; margin-top: 15px; padding: 12px; font-weight: bold;">Tüm Ayarları Kaydet</button>
             </div>
         </div>
     </div>
